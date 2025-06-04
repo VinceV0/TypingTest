@@ -1,0 +1,313 @@
+# This is the typing test app - by Vince Vagay 30036567
+# This version is for 'Nice to haves'
+# The user is able to change the timer
+
+import tkinter as tk
+from tkinter import messagebox
+from tkinter import ttk
+
+
+# Create window
+window = tk.Tk()
+window.title("Typing Test - Vince Vagay")
+window.geometry("750x500+250+70") # size and positioning x and y from the top
+window.config(border=10, relief="ridge", bg="deepskyblue2")
+window.resizable(1,1)
+
+# A label for the combobox "Change timer"
+timerLabel = tk.Label(font=("Roboto", 10, "underline", "bold"), fg="black", bg="deepskyblue2", text="Change timer")
+timerLabel.grid(row = 0, column = 0, rowspan = 3, columnspan = 2)
+
+# Combobox for choosing the time
+times = tk.StringVar(window, "01:00")
+timeOpt = ttk.Combobox(window, width = 5, textvariable = times, font=("Roboto", 15), state="readonly")
+timeOpt.grid(row = 1, column = 0, rowspan = 1, columnspan = 2)
+
+# User's time options
+timeOpt['values'] = ('00:30','01:00','01:30','02:00')
+
+# A variable that holds how much time the user wants to do the test in(in seconds)
+userTime = 60
+
+# variable that holds the seconds the user has to do the test
+count = userTime
+
+def TimeChosen():
+    global userTime
+    global count
+    try:
+        setTime = timeOpt.get()
+        if setTime == '00:30':
+            return 30
+        elif setTime == '01:00':
+            return 60
+        elif setTime == '01:30':
+            return 90
+        elif setTime == '02:00':
+            return 120
+        else:
+            print("Unexpected time input")
+            return 60
+    except:
+        print("Unexpected time input")
+        return 60
+
+
+# 'paragraph' holds the paragraphs that the user will attempt to type out
+# This short story was created using Google's Gemini. Containing 250 words.
+# The prompt was "Generate me a story I can use for a typing test"
+paragraph = """The old lighthouse keeper, Elias Thorne, squinted at the horizon. A storm was brewing, a tempest unlike any he'd seen in his fifty years on the lonely crag. The sea, usually a calm, predictable expanse, churned with an ominous energy, its waves crashing against the rocks like a hungry beast. He adjusted his spectacles, the salty air stinging his eyes. Inside the lantern room, the colossal lens cast its rhythmic beam, a solitary beacon against the encroaching gloom. His pet parrot, Captain Squawk, perched precariously on a brass rail, let out an series of indignant squawks. "Gale coming! Gale coming!" the bird shrieked, ruffling its emerald feathers. Elias chuckled, a gruff, weathered sound. Even Captain Squawk sensed the shift in the atmosphere. Hours passed. The wind howled like a banshee, rattling the ancient structure. Rain lashed against the thick glass, blurring the world outside into a chaotic smear. Elias, a man of routine and quiet fortitude, moved with practiced ease. He checked the oil levels, polished the lens, and ensured every bolt was secure. He knew his duty; the safety of ships depended on his unwavering vigilance. Suddenly, a flicker. Then darkness. The beam died. Elias's heart pounded like a drum. A critical malfunction. He grabbed his toolbox, his movements swift and purposeful. This was not merely a job; it was a sacred trust. He would restore the light, no matter the raging fury outside. He was Elias Thorne, keeper of the beacon, and the night would not defeat him."""
+# An array that has the paragraph split up into its individual words
+wordsArray = paragraph.split()
+
+# variable that will count how many words the user has correctly matched with the line
+wordsMatched = 0
+
+# Function that checks the word is correct with the line and keeps count of how many are correct
+def check():
+    typed = str(typing.get())
+    # Importing variables
+    global chunkCount
+    global NUMWORD
+    global wordsMatched
+
+    # Splitting the user's input into words, stored into an array
+    typedSplit = typed.split()
+    # For testing purposes - Checking if the user's input was split into individual words correctly
+    if chunkCount != 0:
+        print(typedSplit)
+
+        try:
+            
+            # For each word that the user has input, it will check with the words in an array to see if it's correct
+            # It will add one to the counter variable 'wordsMatched' if it's correct
+                # Error input, if the user enters more words than there are on the screen it will not check the extra words
+                # The range is limited from 0 to how many words have been displayed to the user
+            for x in range (0, len((words.cget("text")).split())):
+                print("Typed Array: ", typedSplit[x]) # For testing purposes - seeing what the user input
+                print("Word Array: ", wordsArray[(chunkCount - NUMWORD) + x]) # For testing purposes - seeing the comparison word
+                # If it finds a matched word, it counts it and as to the 'wordsMatched' variable
+                if typedSplit[x] == wordsArray[(chunkCount - NUMWORD) + x]:
+                    print(typedSplit[x], " = ", wordsArray[(chunkCount - NUMWORD) + x]) # For testing purposes - displaying both words
+                    wordsMatched += 1
+                    # For testing purposes - printing out the correct words matched out of how many words attempted
+                    # When on the last line it will print the words matched out of the total words available
+                    if (chunkCount) <= len(wordsArray):
+                        print("Words matched: ", wordsMatched, "/", chunkCount)
+                        accuracy.config(text=str(f"Accuracy: {((wordsMatched / chunkCount) * 100):.2f} %"))
+                        print(f"Accuracy: {((wordsMatched / chunkCount) * 100):.2f}%")
+                    else:
+                        print("Words matched: ", wordsMatched, "/", len(wordsArray))
+                        accuracy.config(text=str(f"Accuracy: {((wordsMatched / len(wordsArray)) * 100):.2f} %"))
+                        print(f"Accuracy: {((wordsMatched / len(wordsArray)) * 100):.2f}%")
+
+                # To avoid dividing with 0
+                if wordsMatched != 0:
+                    # To calculate and display the words per minute according to the words matched, per time the user chose
+                    wpm.config(text=f"WPM: {int(wordsMatched / (TimeChosen() / 60))}")
+        except:
+            # Except is triggered when the user hasn't input the correct amount of words as the displayed words
+            print(len(typedSplit), "/", len(words.cget("text").split()), "words input")
+            pass
+
+# variable that holds the value of an active timer so it can be canceled
+activeTimer = None
+
+# Function to display a countdown timer
+def countdown(count):
+    global activeTimer
+    if count > 0:
+        # Displays the timer
+        # Rounding and converting the count in seconds to minutes
+        minutes = int(count / 60)
+        seconds = count % 60
+
+        # Just for string formatting, adds a 0 as placeholder for seconds less than 10
+        if seconds < 10:
+            timer1.config(text=f"[0{minutes}:0{seconds}]")
+        else:
+            timer1.config(text=f"[0{minutes}:{seconds}]")
+        # After 1000ms call this function and remove one from count variable(seconds)
+        activeTimer = window.after(1000, countdown, count-1)
+    else:
+        # Once timer hits 0, run the time up function
+        finish()
+
+def finish():
+    # Runs this function to capture user's last input
+    check()
+    typing.delete(0, tk.END)
+    # Changes the timer to display that the time is up
+    timer1.config(text="Time's up!")
+    # Messagebox displaying the user's words per minute and accuracy
+    messagebox.showinfo("Results", f"{wpm.cget("text")}, {accuracy.cget("text")}")
+    # Disables the user from entering anything in the input entry box
+    typing.config(state='disabled')
+
+        
+
+# Function for checking if the timer was already active, it will cancel the active timer and start a new timer
+def start_timer():
+    global activeTimer
+    # Cancel previous timer if running
+    if activeTimer is not None:
+        window.after_cancel(activeTimer)
+    countdown(TimeChosen())  # Start countdown with the time the user chooses
+
+# Displays the title of the program
+title = tk.Label(window, font=("Roboto", 30, "bold"), bg="deepskyblue2", width=25, text="Typing Test")
+
+# Timer label
+timer1 = tk.Label(font=("Roboto", 25, "bold"), fg="black", bg="deepskyblue2", text="[00:00]")
+
+# Displays the current words the user will type into the entry
+words = tk.Label(font=("Verdana", 20), fg="black", bg="deepskyblue2", text="Type this text here")
+
+# Counter variable to keep track of words in the array
+chunkCount = 0
+# NUMWORD is used to say how many words are displayed at a time
+NUMWORD = 6
+# Function that updates the words shown on screen
+def line(blank):
+    # Using the chunkCount variable and updating it
+    global chunkCount
+    # Constant variable to how many words appear at a time
+    global NUMWORD
+    # Clearing the line
+    chunk = ""
+    try:
+        # If the amount of words exceeds the amount of words in the paragraph.
+        if chunkCount >= len(wordsArray):
+            # Checks the input by calling the check function and passing the line
+            check()
+            # Clears the entry
+            typing.delete(0, tk.END)
+            # This section is dedicated to when the user reaches the end of the paragraph before the timer finishes
+            # Cancels the active timer
+            window.after_cancel(activeTimer)
+            words.config(text="")
+            # Messagebox displaying the user's words per minute and accuracy
+            messagebox.showinfo("Results", f"{wpm.cget("text")}, {accuracy.cget("text")}")
+            # Disables the user from entering anything in the input entry box
+            typing.config(state='disabled')
+            pass
+        # Otherwise append the line to the label
+        else:
+            # Displays a number of words NUMWORD is used to say how many words are displayed at a time
+            for x in range(chunkCount, (chunkCount + NUMWORD)):
+                # chunk is used to get a 'chunk' of the paragraph(a line)
+                chunk = (chunk + str(wordsArray[x]) + " ")
+            chunk = chunk[:-1] # Used to format the line, just removes the spacing at the end
+            # Sets label to display the chunk of a sentence
+            words.config(text=chunk)
+            # Checks the input by calling the check function and passing the line
+            check()
+            # Clears the entry
+            typing.delete(0, tk.END)
+            # Adds number of words to display onto counter variable
+            chunkCount += NUMWORD
+
+    except:
+        # On initial window load it will display 'Typing Test'
+        if chunkCount == 0:
+            # Sets label to display the chunk of a sentence
+            words.config(text='Type this text here')
+            pass
+        else:
+            # When the last line is reached, it will append the last line
+            print("Last line reached")
+            # Checks the input by calling the check function and passing the line
+            check()
+            # Sets label to display the chunk of a sentence
+            words.config(text=chunk)
+            # Clears the entry
+            typing.delete(0, tk.END)
+            # Adds number of words to display onto counter variable
+            chunkCount += NUMWORD
+
+
+# The function is passed a 'blank' parameter because the entry requires a given argument
+line(blank = '')
+
+def start():
+    # Locks in the chosen time by the user
+    TimeChosen()
+    # Disables the choosing of the timer and start button
+    timeOpt.config(state="disabled")
+    start_button.config(state="disabled")
+    # Points the user into the typing entrybox and allows them to type
+    typing.config(state="normal")
+    typing.focus_set()
+
+# Function thats clears and resets everything
+def end():
+    # Importing global variables
+    global chunkCount
+    global chunk
+    global count
+    global wordsMatched
+    global activeTimer
+    # Clears the entry
+    typing.delete(0, tk.END)
+    # Disables typing
+    typing.config(state="disabled")
+    # Enables the start button again
+    start_button.config(state="normal")
+    # Enables changing the timer
+    timeOpt.config(state="normal")
+    # Reseting variables and widgets to starting state
+    chunkCount = 0
+    chunk = ''
+    wordsMatched = 0
+    count = userTime
+    words.config(text="Typing Test")
+    wpm.config(text="WPM:   ")
+    accuracy.config(text="Accuracy:    %")
+    # Reset timer
+    # Cancel previous timer if running
+    if activeTimer is not None:
+        window.after_cancel(activeTimer)
+    # Note the user can not change the time in this version
+    # Defaulted to 1 minute
+    timer1.config(text="[00:00]")
+    
+
+# Where the user will input what they've typed
+typing = tk.Entry(window, font=("Verdana", 17), bg="white", width=27, state="disabled")
+# Pressing ENTER will call the line function
+typing.bind("<Return>", line)
+
+# Creates start a button
+start_button = tk.Button(window, font=("Verdana", 15, "bold"), fg="black", bg="deepskyblue", text="START", width=7,  command=lambda:[line(blank=''), start_timer(), start()])
+
+# Creates start a button
+reset_button = tk.Button(window, font=("Verdana", 15, "bold"), fg="black", bg="deepskyblue", text="RESET", width=7,  command=lambda:[end()])
+
+# Displays words per minutes
+wpm = tk.Label(font=("Roboto", 20, "bold"), fg="black", bg="deepskyblue2", text="WPM:   ")
+
+# Displays accuracy of input words
+accuracy = tk.Label(font=("Roboto", 20, "bold"), fg="black", bg="deepskyblue2", text="Accuracy:    %")
+
+# Displays instructions
+instructions = tk.Label(font=("Verdana", 15), fg="black", bg="deepskyblue2", text="Press [ENTER] after every line")
+
+
+# Defining a grid
+window.columnconfigure((0,1,2), weight = 1, uniform='a')
+window.rowconfigure((0,1,2,3,4,5,6,7), weight = 1)
+
+# Assigning widget to grid
+title.grid(row = 0, column = 1, pady = 30)
+timer1.grid(row = 2, column = 0, columnspan = 2)
+words.grid(row = 3, column = 0, columnspan = 3, pady = 30)
+typing.grid(row = 4, column = 0, columnspan= 3)
+start_button.grid(row = 5, column = 2)
+reset_button.grid(row = 5, column = 0)
+wpm.grid(row = 1, column = 1, columnspan = 2)
+accuracy.grid(row = 2, column = 1, columnspan = 2)
+instructions.grid(row = 5, column = 0, columnspan = 3, pady = 10)
+
+
+# Run the main window
+window.mainloop()
