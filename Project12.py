@@ -291,6 +291,9 @@ def start():
     TimeChosen()
     # Run the updated paragraph in case the user changed it
     updateParagraph()
+    # Initialize the WPM and accuracy display
+    wpm.config(text="WPM: 0")
+    accuracy.config(text="Accuracy: 0.00 %")
     # Disables the choosing of the timer and start button
     timeOpt.config(state="disabled")
     start_button.config(state="disabled")
