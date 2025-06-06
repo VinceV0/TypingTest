@@ -12,7 +12,7 @@ import json
 # Create window
 window = tk.Tk()
 window.title("Typing Test - Vince Vagay")
-window.geometry("750x500+250+70") # size and positioning x and y from the top
+window.geometry("750x500+250+20") # size and positioning x and y from the top
 window.config(border=10, relief="ridge", bg="deepskyblue2")
 window.resizable(1,1)
 
